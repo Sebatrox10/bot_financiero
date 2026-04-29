@@ -7,23 +7,27 @@ def obtener_precios_energia():
         tickers_satelite = portafolio.get("satelite", [])
         
         if not tickers_satelite:
-            return {"mensaje": "No hay activos tácticos en el portafolio Satélite."}
+            return {"mensaje_telegram": "⚠️ No hay activos tácticos en el portafolio Satélite."}
 
         datos_acciones = {}
+        texto_telegram = "🎯 **Reporte Táctico (Satélite)**\n\n"
         
         for t in tickers_satelite:
-            # Si Gemini detecta una cripto en satélite, le añadimos "-USD" para Yahoo Finance
-            ticker_yf = f"{t}-USD" if t in ["BTC", "ETH", "SOL", "LINK", "ICP", "FIL"] else t
-            
-            stock = yf.Ticker(ticker_yf)
-            hist = stock.history(period="5d")
-            
-            if not hist.empty:
-                precio_actual = hist['Close'].iloc[-1]
-                datos_acciones[t] = {
-                    "precio_usd": round(precio_actual, 2)
-                }
+            try:
+                # Añadimos un intento de conexión rápida
+                stock = yf.Ticker(f"{t}-USD")
+                hist = stock.history(period="5d", timeout=5) # Timeout de 5 segundos
                 
-        return datos_acciones
+                if not hist.empty:
+                    precio_actual = round(hist['Close'].iloc[-1], 2)
+                    datos_acciones[t] = {"precio_usd": precio_actual}
+                    texto_telegram += f"🔹 **{t}**: ${precio_actual}\n"
+            except Exception:
+                texto_telegram += f"🔹 **{t}**: ⏳ (Servidor de datos temporalmente no disponible)\n"
+                
+        return {
+            "data": datos_acciones, 
+            "mensaje_telegram": texto_telegram
+        }
     except Exception as e:
-        return {"error": str(e)}
+        return {"mensaje_telegram": f"❌ Error: {str(e)}"}
