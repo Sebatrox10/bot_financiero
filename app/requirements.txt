@@ -4,3 +4,4 @@ yfinance
 pycoingecko
 google-generativeai
 python-dotenv
+psycopg2-binary
