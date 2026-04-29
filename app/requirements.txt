@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+yfinance
+pycoingecko
+google-generativeai
+python-dotenv
